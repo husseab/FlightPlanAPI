@@ -6,8 +6,8 @@ namespace FlightPlanAPI.Data
     {
         Task<List<FlightPlan>> GetAllFlightPlans();
         Task<FlightPlan> GetFlightPlanById(string flightPlanId);
-        Task<bool> FileFlightPlan(FlightPlan flightPlan);
-        Task<bool> UpdateFlightPlan(string flightPlanId, FlightPlan flightPlan);
+        Task<TransactionResult> FileFlightPlan(FlightPlan flightPlan);
+        Task<TransactionResult> UpdateFlightPlan(string flightPlanId, FlightPlan flightPlan);
         Task<bool> DeleteFlightPlanById(string flightPlanId);
     }
 }

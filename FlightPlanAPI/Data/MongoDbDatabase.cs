@@ -9,7 +9,7 @@ namespace FlightPlanAPI.Data
 {
     public class MongoDbDatabase : IDatabaseAdapter
     {
-       public async Task<List<FlightPlan>> GetAllFLightPlans()
+       public async Task<List<FlightPlan>> GetAllFlightPlans()
         {
             var collection = GetCollection("Abdi", "flight_plans");
             var documents = collection.Find(_ => true).ToListAsync();
@@ -34,7 +34,7 @@ namespace FlightPlanAPI.Data
             if (flightPlan == null) return new FlightPlan();
             return flightPlan;
         }
-       public async Task<bool> FileFlightPlan(FlightPlan flightPlan)
+       public async Task<TransactionResult> FileFlightPlan(FlightPlan flightPlan)
         {
             var collection = GetCollection("pluralsight", "flight_plans");
 
@@ -60,15 +60,18 @@ namespace FlightPlanAPI.Data
             try
             {
                 await collection.InsertOneAsync(document);
+                if (document["_id"].IsObjectId)
+                {
+                    return TransactionResult.Success;
+                }
+                return TransactionResult.BadRequest;
             }
             catch
             {
-                return false;
+                return TransactionResult.ServerError;
             }
-
-            return true;
         }
-       public async Task<bool> UpdateFlightPlan(string flightPlanId, FlightPlan flightPlan)
+       public async Task<TransactionResult> UpdateFlightPlan(string flightPlanId, FlightPlan flightPlan)
         {
             var collection = GetCollection("pluralsight", "flight_plans");
             var filter = Builders<BsonDocument>.Filter.Eq("flight_plan_id", flightPlanId);
@@ -88,14 +91,22 @@ namespace FlightPlanAPI.Data
                 .Set("fuel_minutes", flightPlan.FuelMinutes)
                 .Set("numberOnBoard", flightPlan.NumberOnBoard);
             var result = await collection.UpdateOneAsync(filter, update);
-
-            return result.ModifiedCount > 0;
+            
+            if(result.MatchedCount == 0)
+            {
+                return TransactionResult.NotFound;
+            }
+            if(result.ModifiedCount > 0)
+            {
+                return TransactionResult.Success;
+            }
+            return TransactionResult.ServerError;
         }
         public async Task<bool> DeleteFlightPlanById(string flightPlanId)
         {
-            var collection = GetCollection("pluralsight", "flight_plans");
+            var collection = GetCollection("Abdi", "flight_plans");
             var result = await collection.DeleteOneAsync(
-                Builders<BsonDocument>.Filter.Eq("flight_plan_id", flightPlanId));
+            Builders<BsonDocument>.Filter.Eq("flight_plan_id", flightPlanId));
 
             return result.DeletedCount > 0;
         }

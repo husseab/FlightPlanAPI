@@ -1,3 +1,7 @@
+using FlightPlanAPI.Data;
+using Microsoft.AspNetCore.Authentication;
+using FlightPlanAPI.Authentication;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +10,11 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors();
+builder.Services.AddAuthentication("BasicAuthentication")
+    .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>
+    ("BaiscAuthentication", null);
+builder.Services.AddScoped<IDatabaseAdapter, MongoDbDatabase>();
 
 var app = builder.Build();
 
@@ -27,7 +36,7 @@ app.UseCors(config =>
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
